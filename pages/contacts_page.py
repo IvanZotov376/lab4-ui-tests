@@ -30,3 +30,11 @@ class ContactPage(BasePage):
     
     def submit_form(self):
         self.click(*self.CHECKOUT_BUTTON)
+    
+    def get_form_data(self):
+        return {
+            'name': self.find_element(*self.FULL_NAME_INPUT).get_attribute('value'),
+            'phone': self.find_element(*self.PHONE_INPUT).get_attribute('value'),
+            'address': self.find_element(*self.ADDRESS_INPUT).get_attribute('value'),
+            'agreement': self.find_element(*self.AGREEMENT_CHECKBOX).is_selected()
+        }
