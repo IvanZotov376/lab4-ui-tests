@@ -4,7 +4,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 import os
 import time
 
@@ -70,22 +69,33 @@ class ContactPage(BasePage):
         }
 
 def setup_driver(headless=True):
-    """Настройка драйвера с использованием webdriver-manager"""
+    """Настройка драйвера для CI (без webdriver-manager)"""
     chrome_options = Options()
     
     if headless:
-        # Режим без GUI (для CI)
-        chrome_options.add_argument('--headless')
+        # Используем новый headless режим
+        chrome_options.add_argument('--headless=new')
+    else:
+        chrome_options.add_argument('--headless')  # Стандартный headless для локального запуска
     
-    # Опции для стабильной работы
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--disable-dev-shm-usage')
     chrome_options.add_argument('--disable-gpu')
     chrome_options.add_argument('--window-size=1920,1080')
     
-    # Используем webdriver-manager для автоматической загрузки ChromeDriver
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    # Для CI используем системный chromedriver
+    # В GitHub Actions он будет установлен по пути /usr/local/bin/chromedriver
+    # Для локального запуска можно использовать 'chromedriver' (если в PATH)
+    service = Service('/usr/local/bin/chromedriver')
+    
+    try:
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+    except Exception as e:
+        print(f"Ошибка при создании драйвера: {e}")
+        print("Пробуем использовать драйвер без указания пути...")
+        # Альтернативный вариант
+        service = Service()
+        driver = webdriver.Chrome(service=service, options=chrome_options)
     
     # Для режима с GUI
     if not headless:
@@ -280,7 +290,7 @@ def test_form_validation():
                 errors_found.append("address")
                 print(f"✗ Неожиданная ошибка адреса: {address_error.text}")
         except:
-            pass  # Ошибка адреса не должна отображаваться
+            pass  # Ошибка адреса не должна отображаться
         
         print(f"Найдены ошибки: {errors_found}")
         

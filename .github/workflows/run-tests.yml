@@ -20,30 +20,36 @@ jobs:
       with:
         python-version: '3.10'
     
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install selenium==4.15.0 pytest==7.4.0 pytest-html==4.1.0 webdriver-manager==4.0.0
+        pip install -r requirements.txt
     
-    - name: Install Chrome (без ChromeDriver)
+    - name: Install Chrome and ChromeDriver (системные пакеты)
       run: |
         sudo apt-get update
-        sudo apt-get install -y wget
-        # Скачиваем Chrome
+        sudo apt-get install -y wget unzip
+        
+        # Установка Chrome
         wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
         sudo apt install -y ./google-chrome-stable_current_amd64.deb
-        # Проверяем
-        google-chrome --version || echo "Trying alternative method"
-        /usr/bin/google-chrome --version || echo "Chrome check failed"
-    
-    - name: Run tests with headless Chrome
-      env:
-        DISPLAY: ":99"  # Для headless режима
-      run: |
-        # Запускаем виртуальный дисплей (для headless тестов)
-        Xvfb :99 -screen 0 1920x1080x24 &
-        sleep 3
         
+        # Установка ChromeDriver для Linux
+        CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
+        echo "Chrome version: $CHROME_VERSION"
+        
+        # Скачиваем стабильную версию ChromeDriver
+        wget -q -O /tmp/chromedriver.zip https://storage.googleapis.com/chrome-for-testing-public/stable/linux64/chromedriver-linux64.zip
+        unzip -o /tmp/chromedriver.zip -d /tmp/
+        sudo mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/
+        sudo chmod +x /usr/local/bin/chromedriver
+        
+        # Проверяем установку
+        which chromedriver
+        chromedriver --version
+    
+    - name: Run tests
+      run: |
         # Запускаем тесты
         python -m pytest tests/ -v --html=report.html
     
