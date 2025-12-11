@@ -11,44 +11,36 @@ jobs:
     name: Run UI Tests
     runs-on: ubuntu-latest
     
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.10']
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: '3.10'
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install selenium pytest pytest-html webdriver-manager
     
     - name: Install Chrome
       run: |
         sudo apt-get update
-        sudo apt-get install -y google-chrome-stable
-    
-    - name: Install ChromeDriver
-      run: |
-        CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-        CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
-        wget -q "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
-        unzip chromedriver_linux64.zip
-        sudo mv chromedriver /usr/local/bin/
-        sudo chmod +x /usr/local/bin/chromedriver
+        sudo apt-get install -y wget
+        # Скачиваем и устанавливаем Chrome
+        wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        sudo apt install -y /tmp/chrome.deb
+        # Проверяем установку
+        ls /usr/bin/google-chrome || echo "Chrome not found"
     
     - name: Run UI tests
       run: |
-        python -m pytest tests/ -v --html=report-${{ matrix.python-version }}.html
+        python -m pytest tests/ -v --html=report.html
     
     - name: Upload test report
       uses: actions/upload-artifact@v4
       with:
-        name: test-report-python-${{ matrix.python-version }}
-        path: report-${{ matrix.python-version }}.html
+        name: test-report
+        path: report.html
