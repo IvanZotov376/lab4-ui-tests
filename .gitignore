@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Virtual Environment
+.env
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Tests
+*.png
+*.html
+*.log
+test-results/
+reports/
+
+# Selenium/WebDriver
+webdriver/
+geckodriver*
+chromedriver*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# GitHub Actions
+.github/workflows/*.log
